@@ -1,37 +1,72 @@
 import React,{useEffect ,useState} from 'react';
 import axios from 'axios'; //importing axios so we can make an api call
 import { useParams } from 'react-router-dom'; // to be able to use the parameter that is in the url
+import { useNavigate } from 'react-router-dom';
 
 const EditForm = () => {
     const {id} = useParams()//setting up use params {this needs to be the same as in the url in the app file}
-    const [updateProduct,setUpdateProduct] = useState({}) //setting useState() to grab  and edit all the info from the api later
-    useEffect(()=>{ //useEffect(()=>{     },[]) prevents useState() from running over and over again
+    const [updateProduct,setUpdateProduct] = useState({}) 
+    const [formInfo,setFormInfo]= useState({}); //creating one  useState() instead of multiple ones
+    const [errorForm,setErrorForm] = useState({});
+    const navigate = useNavigate("/");
+
+    useEffect(()=>{ 
         axios.put(`http://localhost:8000/api/product/update/${id}`) //the url of the api
-        .then((response)=>{ //the info from the api
+        .then((response)=>{ 
             console.log("response for one",response) //this is to show on the console what we got from the api
             if(response.data.results){
-                setUpdateProduct(response.data.results); //setting the response/info that we got form the api useState so we can use it globally
+                setUpdateProduct(response.data.results);
             }
         })
-        .catch(err => console.log("there is an error some where ",err)) //this will run if there is an error  most likely is the url
+        .catch(err => console.log("there is an error some where ",err)) 
         },[])
+
+const changeHandler = (e)=>{ //e ==  to the event/ onChange
+    setUpdateProduct({
+        ...updateProduct,
+        [e.target.name]: e.target.value
+    });
+}
+
+
+
+const onSubmission = (e)=>{ // Preventing the page reload //? we need onSubmit={onSubmission} on the form for this to work
+    e.preventDefault();
+    axios.put(`http://localhost:8000/api/product/update/${id}`,updateProduct) //calling the api to create a new item //? formInfo is the info that is going to be created
+    .then((res)=>{
+        console.log("response after the form is submitted",res)
+        if(res.data.error){ // if there are any errors then save it to a state variable
+            setErrorForm(res.data.error.errors);
+        }
+        else{
+            setErrorForm({});
+            navigate("/");
+        }
+    })
+    .catch(err =>{console.log("there is an error after the form is submitted ",err)})
+}
+
     return (
         <div>
             <h1>update product</h1>
-            <form   className='container'>
+            <form onSubmit={onSubmission}  className='container'>
                 <div className="form-group">
                     <label htmlFor="">Title</label>
-                    <input type="text" className="form-control" name='title' id="" placeholder={updateProduct.title} value={updateProduct.title} />
+                    
+                    <input type="text" className="form-control" name='title' id="" onChange={changeHandler}  placeholder={updateProduct.title} value={updateProduct.title} />
+                    <p>{errorForm.title?.message}</p> 
                 </div>
 
                 <div className="form-group">
                     <label htmlFor="">price</label>
-                    <input type="number" className="form-control" id="" name='price' placeholder={updateProduct.price} value={updateProduct.price} />
+                    <input type="number" className="form-control" id="" name='price' onChange={changeHandler}  placeholder={updateProduct.price} value={updateProduct.price} />
+                    <p>{errorForm.price?.message}</p> 
                 </div>
 
                 <div className="form-group">
                     <label htmlFor="">description</label>
-                    <input type="text" className="form-control" id="" name='description' placeholder={updateProduct.description} value={updateProduct.description} />
+                    <input type="text" className="form-control" id="" name='description' onChange={changeHandler}    placeholder={updateProduct.description} value={updateProduct.description} />
+                    <p>{errorForm.description?.message}</p> 
                 </div>
                 <div>
                     <input type="submit" className='m-3 btn btn-success' />

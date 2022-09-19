@@ -42,7 +42,7 @@ const AllProducts = (props) => {
                             <h2>description: {item.description}</h2>
                             <h4>date created: {item.createdAt}</h4>
                             <Link to={`/product/update/${item._id}`} className='btn btn-info'>edit {item.title}</Link>
-                            <button onClick={deleteProduct} className='btn btn-danger' >delete {item.title}</button>
+                            <button onClick={(e)=>deleteProduct(item._id)} className='btn btn-danger' >delete {item.title}</button>
                         </div>
                     )
                 })
